@@ -16,3 +16,19 @@ FROM `a_article`
 INNER JOIN v_voiture
 ON a_id = v_fk_id_article
 GROUP BY v_energie;
+
+
+SELECT  `a_designation`,`a_quantite`, v_energie, v_type
+FROM `a_article`
+INNER JOIN v_voiture
+ON a_id = v_fk_id_article
+GROUP BY v_energie 
+ORDER BY a_designation;
+
+
+UPDATE a_article 
+SET a_quantite = 25 
+WHERE a_id = 1;
+
+DELETE FROM a_article
+WHERE a_id = 3;
