@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : mer. 26 nov. 2025 à 12:26
+-- Généré le : mer. 26 nov. 2025 à 13:43
 -- Version du serveur : 8.4.7
 -- Version de PHP : 8.3.28
 
@@ -20,6 +20,48 @@ SET time_zone = "+00:00";
 --
 -- Base de données : `garage2`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Doublure de structure pour la vue `facture_test`
+-- (Voir ci-dessous la vue réelle)
+--
+DROP VIEW IF EXISTS `facture_test`;
+CREATE TABLE IF NOT EXISTS `facture_test` (
+`a_type` varchar(20)
+,`av_quantite` int
+,`c_nom` varchar(50)
+,`f_date` date
+,`f_id` int
+,`fact_prix_final` decimal(43,2)
+,`ord_heure` int
+,`ord_taux_horaire` int
+,`prix_main_oeuvre` decimal(10,2)
+,`prix_pieces` decimal(42,2)
+,`v_marque` varchar(20)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Doublure de structure pour la vue `facture_test2`
+-- (Voir ci-dessous la vue réelle)
+--
+DROP VIEW IF EXISTS `facture_test2`;
+CREATE TABLE IF NOT EXISTS `facture_test2` (
+`Date` date
+,`Heures Passées` int
+,`Marque Véhicule` varchar(20)
+,`Nom Article` varchar(20)
+,`Nom Client` varchar(50)
+,`Numéro Facture` int
+,`Prix Main d'oeuvre` decimal(10,2)
+,`Prix Pièces` decimal(42,2)
+,`Quantité` int
+,`Taux Horaire` int
+,`Total` decimal(43,2)
+);
 
 -- --------------------------------------------------------
 
@@ -213,14 +255,21 @@ CREATE TABLE IF NOT EXISTS `g_facture` (
   `f_date` date NOT NULL,
   PRIMARY KEY (`f_id`),
   UNIQUE KEY `ord_id` (`ord_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `g_facture`
 --
 
 INSERT INTO `g_facture` (`f_id`, `ord_id`, `f_date`) VALUES
-(1, 1, '2025-11-25');
+(1, 1, '2025-11-25'),
+(2, 2, '2025-11-05'),
+(3, 3, '2025-11-10'),
+(4, 4, '2025-11-12'),
+(5, 5, '2025-11-12'),
+(6, 6, '2025-11-13'),
+(7, 7, '2025-11-14'),
+(8, 8, '2025-11-15');
 
 -- --------------------------------------------------------
 
@@ -317,28 +366,22 @@ INSERT INTO `g_voiture` (`v_id`, `v_marque`, `v_type`, `v_energie`, `v_plaque`, 
 -- --------------------------------------------------------
 
 --
--- Doublure de structure pour la vue `v_factures_detail`
--- (Voir ci-dessous la vue réelle)
+-- Structure de la vue `facture_test`
 --
-DROP VIEW IF EXISTS `v_factures_detail`;
-CREATE TABLE IF NOT EXISTS `v_factures_detail` (
-`f_date` date
-,`f_id` int
-,`fact_prix_final` decimal(43,2)
-,`ord_id` int
-,`prix_main_oeuvre` decimal(10,2)
-,`prix_pieces` decimal(42,2)
-);
+DROP TABLE IF EXISTS `facture_test`;
+
+DROP VIEW IF EXISTS `facture_test`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `facture_test`  AS SELECT `f`.`f_id` AS `f_id`, `f`.`f_date` AS `f_date`, `c`.`c_nom` AS `c_nom`, `v`.`v_marque` AS `v_marque`, `o`.`ord_heure` AS `ord_heure`, `o`.`ord_taux_horaire` AS `ord_taux_horaire`, `o`.`ord_prix` AS `prix_main_oeuvre`, `a`.`a_type` AS `a_type`, `av`.`av_quantite` AS `av_quantite`, ifnull(sum((`av`.`av_quantite` * `a`.`a_prix`)),0) AS `prix_pieces`, (`o`.`ord_prix` + ifnull(sum((`av`.`av_quantite` * `a`.`a_prix`)),0)) AS `fact_prix_final` FROM (((((`g_facture` `f` join `g_ordre` `o` on((`f`.`ord_id` = `o`.`ord_id`))) join `g_client` `c` on((`o`.`ord_fk_id_client` = `c`.`c_id`))) join `g_voiture` `v` on((`c`.`c_id` = `v`.`v_fk_id_client`))) join `g_avoir` `av` on((`o`.`ord_id` = `av`.`ord_id`))) join `g_article` `a` on((`av`.`a_id` = `a`.`a_id`))) GROUP BY `f`.`f_id`, `f`.`ord_id`, `f`.`f_date`, `o`.`ord_prix` ;
 
 -- --------------------------------------------------------
 
 --
--- Structure de la vue `v_factures_detail`
+-- Structure de la vue `facture_test2`
 --
-DROP TABLE IF EXISTS `v_factures_detail`;
+DROP TABLE IF EXISTS `facture_test2`;
 
-DROP VIEW IF EXISTS `v_factures_detail`;
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_factures_detail`  AS SELECT `f`.`f_id` AS `f_id`, `f`.`ord_id` AS `ord_id`, `f`.`f_date` AS `f_date`, `o`.`ord_prix` AS `prix_main_oeuvre`, ifnull(sum((`av`.`av_quantite` * `a`.`a_prix`)),0) AS `prix_pieces`, (`o`.`ord_prix` + ifnull(sum((`av`.`av_quantite` * `a`.`a_prix`)),0)) AS `fact_prix_final` FROM (((`g_facture` `f` join `g_ordre` `o` on((`f`.`ord_id` = `o`.`ord_id`))) left join `g_avoir` `av` on((`o`.`ord_id` = `av`.`ord_id`))) left join `g_article` `a` on((`av`.`a_id` = `a`.`a_id`))) GROUP BY `f`.`f_id`, `f`.`ord_id`, `f`.`f_date`, `o`.`ord_prix` ;
+DROP VIEW IF EXISTS `facture_test2`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `facture_test2`  AS SELECT `f`.`f_id` AS `Numéro Facture`, `f`.`f_date` AS `Date`, `c`.`c_nom` AS `Nom Client`, `v`.`v_marque` AS `Marque Véhicule`, `o`.`ord_heure` AS `Heures Passées`, `o`.`ord_taux_horaire` AS `Taux Horaire`, `o`.`ord_prix` AS `Prix Main d'oeuvre`, `a`.`a_type` AS `Nom Article`, `av`.`av_quantite` AS `Quantité`, ifnull(sum((`av`.`av_quantite` * `a`.`a_prix`)),0) AS `Prix Pièces`, (`o`.`ord_prix` + ifnull(sum((`av`.`av_quantite` * `a`.`a_prix`)),0)) AS `Total` FROM (((((`g_facture` `f` join `g_ordre` `o` on((`f`.`ord_id` = `o`.`ord_id`))) join `g_client` `c` on((`o`.`ord_fk_id_client` = `c`.`c_id`))) join `g_voiture` `v` on((`c`.`c_id` = `v`.`v_fk_id_client`))) join `g_avoir` `av` on((`o`.`ord_id` = `av`.`ord_id`))) join `g_article` `a` on((`av`.`a_id` = `a`.`a_id`))) GROUP BY `f`.`f_id`, `f`.`ord_id`, `f`.`f_date`, `o`.`ord_prix` ;
 
 --
 -- Contraintes pour les tables déchargées
