@@ -135,3 +135,81 @@ LEFT JOIN g_avoir av ON o.ord_id = av.ord_id
 LEFT JOIN g_article a ON av.a_id = a.a_id
 -- GROUP BY f.f_id, a.a_id
 ORDER BY f.f_id, a.a_designation;
+
+SELECT DISTINCT a_designation
+FROM g_article
+WHERE a_designation LIKE '%Filtre%';
+
+SELECT DISTINCT a_designation AS 'Désignation', SUM(a_quantite) AS 'Quantité'
+FROM g_article
+WHERE a_designation LIKE '%Filtre%'
+GROUP BY a_designation;
+
+SELECT DISTINCT a_designation AS 'Désignation', SUM(a_quantite) AS 'Quantité'
+FROM g_article
+GROUP BY a_designation;
+
+SELECT COUNT(a_designation) AS 'Nombre Articles en Stock'
+FROM g_article;
+
+SELECT COUNT(a_designation) AS 'Stock Filtre à Huile'
+FROM g_article
+WHERE a_designation = 'Filtre à huile';
+
+SELECT COUNT(a_designation) AS 'Stock Filtre à Huile', a_marque AS 'Marque'
+FROM g_article
+WHERE a_designation = 'Filtre à huile'
+GROUP BY a_marque;
+
+
+SELECT a_designation AS 'Designation', a_marque AS 'Marque', COUNT(*) AS Duplicate
+FROM g_article
+GROUP BY a_marque, a_designation
+HAVING COUNT(*) >1;
+
+SELECT 
+    c.c_nom,
+    v.v_marque ,
+    v.v_modele ,
+    v.v_plaque,
+    COUNT(o.ord_fk_id_facture) AS Nombre_de_passages
+FROM g_voiture v
+JOIN g_client c ON v.v_fk_id_client = c.c_id
+JOIN g_ordre o ON o.ord_fk_id_client = c.c_id
+GROUP BY c_nom;
+
+SELECT 
+    c.c_nom AS Nom,
+    v.v_marque AS Marque,
+    v.v_modele AS Modèle,
+    v.v_plaque AS Immatriculation,
+    COUNT(DISTINCT o.ord_fk_id_facture) AS NbPassages
+FROM g_voiture v
+JOIN g_client c ON v.v_fk_id_client = c.c_id
+JOIN g_ordre o ON o.ord_fk_id_client = c.c_id
+GROUP BY c_nom
+ORDER BY NbPassages DESC;
+
+SELECT  `ord_id` AS 'OR ID', a_designation AS 'Designation', a_ref AS 'Référence',`av_quantite` AS 'Quantité'
+FROM g_avoir
+INNER JOIN g_article 
+ON g_avoir.a_id =g_article.a_id
+ORDER BY g_avoir.ord_id;
+ 
+ 
+ SELECT 
+    a_marque AS 'Marque',
+    a_prix AS 'Prix',
+    ROUND(AVG(a_prix),2) AS 'Prix Moyen Par Filtre',
+    ROUND(AVG(a_prix) OVER (PARTITION BY a_marque), 2) AS 'Moyenne Par Marque'
+FROM g_article
+WHERE a_designation LIKE 'Filtre%'
+GROUP BY a_marque;
+
+SELECT 
+    a_marque AS Marque,
+    ROUND(AVG(a_prix) OVER (), 2) AS Prix_Moyen_Global,
+    ROUND(AVG(a_prix) OVER (PARTITION BY a_marque), 2) AS Prix_Moyen_Par_Marque
+FROM g_article
+WHERE a_designation LIKE 'Filtre%'
+ORDER BY a_marque;
