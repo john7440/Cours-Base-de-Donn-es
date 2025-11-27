@@ -86,3 +86,52 @@ INNER JOIN g_avoir av ON o.ord_id = av.ord_id
 INNER JOIN g_article a ON av.a_id = a.a_id
 
 GROUP BY f.f_id, f.ord_id, f.f_date, o.ord_prix;
+
+
+CREATE OR REPLACE VIEW v_facture_detail_articles AS
+SELECT 
+    f.f_id AS 'N° Facture',
+    f.f_date AS 'Date',
+    c.c_nom AS 'Client',
+    v.v_marque AS 'Véhicule',
+    o.ord_heure AS 'Heures',
+    o.ord_prix AS 'Main d\'œuvre',
+    a.a_designation AS 'Article',
+    a.a_marque AS 'Marque',
+    av.av_quantite AS 'Qté',
+    a.a_prix AS 'Prix unitaire',
+    (av.av_quantite * a.a_prix) AS 'Prix total article',
+    ((av.av_quantite * a.a_prix) + o.ord_prix) AS 'Total OR',
+    SUM((av.av_quantite * a.a_prix) + o.ord_prix) AS 'Total'
+FROM g_facture f
+JOIN g_ordre o ON f.f_id = o.ord_fk_id_facture
+JOIN g_client c ON f.f_fk_id_client = c.c_id
+LEFT JOIN g_voiture v ON c.c_id = v.v_fk_id_client
+LEFT JOIN g_avoir av ON o.ord_id = av.ord_id
+LEFT JOIN g_article a ON av.a_id = a.a_id
+ORDER BY f.f_id, a.a_designation;
+
+
+CREATE OR REPLACE VIEW test_total_facture AS
+SELECT 
+    f.f_id AS 'N° Facture',
+    f.f_date AS 'Date',
+    c.c_nom AS 'Client',
+    v.v_marque AS 'Véhicule',
+    o.ord_heure AS 'Heures',
+    o.ord_prix AS 'Main d\'œuvre',
+    a.a_designation AS 'Article',
+    a.a_marque AS 'Marque',
+    av.av_quantite AS 'Qté',
+    a.a_prix AS 'Prix unitaire',
+    (av.av_quantite * a.a_prix) AS 'Prix total article',
+    (o.ord_prix + (av.av_quantite * a.a_prix)) AS 'Test',
+	SUM(o.ord_prix + (av.av_quantite * a.a_prix)) OVER (PARTITION BY f.f_id) AS 'Total Facture'
+FROM g_facture f
+JOIN g_ordre o ON f.f_id = o.ord_fk_id_facture
+JOIN g_client c ON f.f_fk_id_client = c.c_id
+LEFT JOIN g_voiture v ON c.c_id = v.v_fk_id_client
+LEFT JOIN g_avoir av ON o.ord_id = av.ord_id
+LEFT JOIN g_article a ON av.a_id = a.a_id
+-- GROUP BY f.f_id, a.a_id
+ORDER BY f.f_id, a.a_designation;
